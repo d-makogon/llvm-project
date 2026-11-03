@@ -10371,20 +10371,25 @@ SolveLinEquationWithOverflow(const APInt &A, const SCEV *B,
   unsigned MinTZ = SE.getMinTrailingZeros(B);
   // Try again with the terminator of the loop predecessor for context-specific
   // result, if MinTZ s too small.
-  if (MinTZ < Mult2 && L->getLoopPredecessor())
-    MinTZ = SE.getMinTrailingZeros(B, L->getLoopPredecessor()->getTerminator());
+  const Instruction *CtxI = nullptr;
+  if (BasicBlock *LoopPred = L->getLoopPredecessor())
+    CtxI = LoopPred->getTerminator();
+  if (MinTZ < Mult2 && CtxI)
+    MinTZ = SE.getMinTrailingZeros(B, CtxI);
   if (MinTZ < Mult2) {
     // Check if we can prove there's no remainder using URem.
     const SCEV *URem =
         SE.getURemExpr(B, SE.getConstant(APInt::getOneBitSet(BW, Mult2)));
     const SCEV *Zero = SE.getZero(B->getType());
-    if (!SE.isKnownPredicate(CmpInst::ICMP_EQ, URem, Zero)) {
+    if (!(CtxI ? SE.isKnownPredicateAt(CmpInst::ICMP_EQ, URem, Zero, CtxI)
+               : SE.isKnownPredicate(CmpInst::ICMP_EQ, URem, Zero))) {
       // Try to add a predicate ensuring B is a multiple of 1 << Mult2.
       if (!Predicates)
         return SE.getCouldNotCompute();
 
       // Avoid adding a predicate that is known to be false.
-      if (SE.isKnownPredicate(CmpInst::ICMP_NE, URem, Zero))
+      if (CtxI ? SE.isKnownPredicateAt(CmpInst::ICMP_NE, URem, Zero, CtxI)
+               : SE.isKnownPredicate(CmpInst::ICMP_NE, URem, Zero))
         return SE.getCouldNotCompute();
       Predicates->push_back(SE.getEqualPredicate(URem, Zero));
     }
