@@ -613,9 +613,9 @@ static void normalizePredicate(ScalarEvolution *SE, Loop *L,
                                LoopICmp& RC) {
   // LFTR canonicalizes checks to the ICMP_NE/EQ form; normalize back to the
   // ULT/UGE form for ease of handling by our caller.
-  if (ICmpInst::isEquality(RC.Pred) &&
-      RC.IV->getStepRecurrence(*SE)->isOne() &&
-      SE->isKnownPredicate(ICmpInst::ICMP_ULE, RC.IV->getStart(), RC.Limit))
+  if (ICmpInst::isEquality(RC.Pred) && RC.IV->getStepRecurrence(*SE)->isOne() &&
+      SE->isKnownPredicateAt(ICmpInst::ICMP_ULE, RC.IV->getStart(), RC.Limit,
+                             L->getLoopPreheader()->getTerminator()))
     RC.Pred = RC.Pred == ICmpInst::ICMP_NE ?
       ICmpInst::ICMP_ULT : ICmpInst::ICMP_UGE;
 }

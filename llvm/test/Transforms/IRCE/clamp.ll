@@ -27,9 +27,7 @@ preheader:                                 ; preds = %entry
 ; CHECK:      preheader:
 ; CHECK-NEXT:   %length_gep.i146 = getelementptr inbounds i8, ptr addrspace(1) undef, i64 8
 ; CHECK-NEXT:   %tmp43 = icmp ult i64 %indvars.iv.next467, %tmp21
-; CHECK-NEXT:   %exit.mainloop.at = call i64 @llvm.umax.i64(i64 %tmp21, i64 1)
-; CHECK-NEXT:   [[C1:%[^ ]+]] = icmp ult i64 1, %exit.mainloop.at
-; CHECK-NEXT:   br i1 [[C1]], label %loop.preheader, label %main.pseudo.exit
+; CHECK-NEXT:   br label %loop
 
   %length_gep.i146 = getelementptr inbounds i8, ptr addrspace(1) undef, i64 8
   %tmp43 = icmp ult i64 %indvars.iv.next467, %tmp21
@@ -38,8 +36,7 @@ preheader:                                 ; preds = %entry
 not_zero:                                       ; preds = %in_bounds
 ; CHECK:      not_zero:
 ; CHECK:        %tmp56 = icmp ult i64 %indvars.iv.next, %tmp21
-; CHECK-NEXT:   [[COND:%[^ ]+]] = icmp ult i64 %indvars.iv.next, %exit.mainloop.at
-; CHECK-NEXT:   br i1 [[COND]], label %loop, label %main.exit.selector
+; CHECK-NEXT:   br i1 %tmp56, label %loop, label %exit.loopexit
 
   %tmp51 = trunc i64 %indvars.iv.next to i32
   %tmp53 = mul i32 %tmp51, %tmp51

@@ -609,13 +609,16 @@ calculateSubRanges(const ScalarOptions &Opts, ScalarEvolution &SE,
   ICmpInst::Predicate PredLT =
       IsSignedPredicate ? ICmpInst::ICMP_SLT : ICmpInst::ICMP_ULT;
 
+  // Both limits are loop-invariant, so conditions guarding the loop entry
+  // apply.
+  const Instruction *CtxI = L.getLoopPreheader()->getTerminator();
   bool ProvablyNoPreloop =
-      SE.isKnownPredicate(PredLE, Range.getBegin(), Smallest);
+      SE.isKnownPredicateAt(PredLE, Range.getBegin(), Smallest, CtxI);
   if (!ProvablyNoPreloop)
     Result.LowLimit = Clamp(Range.getBegin());
 
   bool ProvablyNoPostLoop =
-      SE.isKnownPredicate(PredLT, GreatestSeen, Range.getEnd());
+      SE.isKnownPredicateAt(PredLT, GreatestSeen, Range.getEnd(), CtxI);
   if (!ProvablyNoPostLoop)
     Result.HighLimit = Clamp(Range.getEnd());
 

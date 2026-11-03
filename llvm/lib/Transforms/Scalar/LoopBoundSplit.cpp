@@ -78,7 +78,9 @@ static bool calculateUpperBound(const Loop &L, ScalarEvolution &SE,
     // Check Bound < INT_MAX
     ICmpInst::Predicate Pred =
         ICmpInst::isSigned(Cond.Pred) ? ICmpInst::ICMP_SLT : ICmpInst::ICMP_ULT;
-    if (SE.isKnownPredicate(Pred, Cond.BoundSCEV, MaxSCEV)) {
+    // The bound is loop-invariant, so conditions guarding the loop entry apply.
+    if (SE.isKnownPredicateAt(Pred, Cond.BoundSCEV, MaxSCEV,
+                              L.getLoopPreheader()->getTerminator())) {
       const SCEV *BoundPlusOneSCEV =
           SE.getAddExpr(Cond.BoundSCEV, SE.getOne(BoundSCEVIntType));
       Cond.BoundSCEV = BoundPlusOneSCEV;
