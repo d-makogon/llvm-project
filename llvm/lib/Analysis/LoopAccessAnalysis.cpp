@@ -236,7 +236,7 @@ static bool evaluatePtrAddRecAtMaxBTCWillNotWrap(
   MaxBTC = SE.getNoopOrZeroExtend(MaxBTC, WiderTy);
 
   // For the computations below, make sure they don't unsigned wrap.
-  if (!SE.isKnownPredicate(CmpInst::ICMP_UGE, AR->getStart(), StartPtr))
+  if (!SE.isKnownPredicateAt(CmpInst::ICMP_UGE, AR->getStart(), StartPtr, CtxI))
     return false;
   const SCEV *StartOffset = SE.getNoopOrZeroExtend(
       SE.getMinusSCEV(AR->getStart(), StartPtr), WiderTy);
@@ -280,12 +280,14 @@ static bool evaluatePtrAddRecAtMaxBTCWillNotWrap(
     // of the first access, Start + EltSize, does not depend on MaxBTC and is
     // not checked here.
     assert(SE.isKnownNegative(Step) && "must be known negative");
-    if (!SE.isKnownPredicate(CmpInst::ICMP_UGE, StartOffset, DistToLastIter))
+    if (!SE.isKnownPredicateAt(CmpInst::ICMP_UGE, StartOffset, DistToLastIter,
+                               CtxI))
       return false;
     MaxOffset = StartOffset;
   }
   // MaxOffset must not exceed the deref-region end.
-  return SE.isKnownPredicate(CmpInst::ICMP_ULE, MaxOffset, DerefBytesSCEV);
+  return SE.isKnownPredicateAt(CmpInst::ICMP_ULE, MaxOffset, DerefBytesSCEV,
+                               CtxI);
 }
 
 /// Return true if \p S is known to be monotonically non-decreasing

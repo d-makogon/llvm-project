@@ -423,7 +423,8 @@ bool llvm::isDereferenceableAndAlignedInLoop(
   SimplifyQuery SQ(DL, &DT, AC, CtxI);
   return isDereferenceableAndAlignedPointerViaAssumption(
              Base, Alignment, SQ, /*IgnoreFree=*/false,
-             [&SE, AccessSizeSCEV, &LoopGuards](const RetainedKnowledge &RK) {
+             [&SE, AccessSizeSCEV, &LoopGuards,
+              CtxI](const RetainedKnowledge &RK) {
                const SCEV *DerefBytesSCEV = SE.getSCEV(RK.IRArgValue);
                Type *WiderTy = SE.getWiderType(AccessSizeSCEV->getType(),
                                                DerefBytesSCEV->getType());
@@ -431,10 +432,10 @@ bool llvm::isDereferenceableAndAlignedInLoop(
                    SE.getNoopOrZeroExtend(AccessSizeSCEV, WiderTy);
                const SCEV *DerefBytesExt =
                    SE.getNoopOrZeroExtend(DerefBytesSCEV, WiderTy);
-               return SE.isKnownPredicate(
+               return SE.isKnownPredicateAt(
                    CmpInst::ICMP_ULE,
                    SE.applyLoopGuards(AccessSizeExt, LoopGuards),
-                   SE.applyLoopGuards(DerefBytesExt, LoopGuards));
+                   SE.applyLoopGuards(DerefBytesExt, LoopGuards), CtxI);
              }) ||
          isDereferenceableAndAlignedPointer(Base, Alignment, AccessSize, SQ);
 }
