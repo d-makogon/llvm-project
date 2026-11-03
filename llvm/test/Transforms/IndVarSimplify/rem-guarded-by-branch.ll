@@ -13,8 +13,7 @@ define void @urem_guarded_by_branch(i32 %m, ptr %p) {
 ; CHECK-NEXT:    [[C:%.*]] = icmp ult i32 [[I]], [[M]]
 ; CHECK-NEXT:    br i1 [[C]], label %[[BODY]], label %[[EXIT:.*]]
 ; CHECK:       [[BODY]]:
-; CHECK-NEXT:    [[REM:%.*]] = urem i32 [[I]], [[M]]
-; CHECK-NEXT:    store i32 [[REM]], ptr [[P]], align 4
+; CHECK-NEXT:    store i32 [[I]], ptr [[P]], align 4
 ; CHECK-NEXT:    [[I_NEXT]] = add nuw i32 [[I]], 1
 ; CHECK-NEXT:    br label %[[LOOP]]
 ; CHECK:       [[EXIT]]:

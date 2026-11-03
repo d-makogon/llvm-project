@@ -436,14 +436,14 @@ void SimplifyIndvar::simplifyIVRemainder(BinaryOperator *Rem,
 
   if (UsedAsNumerator) {
     auto LT = IsSigned ? ICmpInst::ICMP_SLT : ICmpInst::ICMP_ULT;
-    if (SE->isKnownPredicate(LT, N, D)) {
+    if (SE->isKnownPredicateAt(LT, N, D, Rem)) {
       replaceRemWithNumerator(Rem);
       return;
     }
 
     auto *T = Rem->getType();
     const SCEV *NLessOne = SE->getMinusSCEV(N, SE->getOne(T));
-    if (SE->isKnownPredicate(LT, NLessOne, D)) {
+    if (SE->isKnownPredicateAt(LT, NLessOne, D, Rem)) {
       replaceRemWithNumeratorOrZero(Rem);
       return;
     }
